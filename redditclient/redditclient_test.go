@@ -26,7 +26,7 @@ func TestMakeAPICall(t *testing.T) {
 	//Test Call With Wrong API
 	_, err := r.MakeAPICall("sdfsfsdfsfsd", "test", nil)
 
-	if err == "" {
+	if err == nil {
 		t.Error("Expected an error response for bad API call")
 	}
 
