@@ -41,7 +41,7 @@ func NewRedditClient(filePath string) (*RedditClient, error) {
 	configFile, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		log.Println("There was a problem loading the configuration file.")
-		return nil, errors.New("Couldn't load reddit client configuration file.")
+		return nil, errors.New("couldn't load reddit client configuration file")
 	}
 
 	client.config = &configClient{}
@@ -58,6 +58,7 @@ func (r RedditClient) getClientToken() *tokenResponse {
 	if r.token != nil {
 		return r.token
 	}
+
 	//Build call to get token
 	client := &http.Client{}
 	body := strings.NewReader("grant_type=password&username=" + r.config.Username + "&password=" + r.config.Password)
@@ -78,8 +79,7 @@ func (r RedditClient) getClientToken() *tokenResponse {
 
 }
 
-//MakeAPICall - Calls a Reddit API with the given method POST\GET and returns
-// a response
+//MakeAPICall - Calls a Reddit API with the given method POST\GET and returns a response
 func (r RedditClient) MakeAPICall(api, method string, request io.Reader) ([]byte, error) {
 	req, err2 := r.buildRequest(api, method, request)
 	if err2 != nil {
