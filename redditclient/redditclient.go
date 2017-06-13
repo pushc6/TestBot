@@ -2,6 +2,7 @@ package redditclient
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"io"
@@ -23,6 +24,15 @@ type tokenResponse struct {
 	Scope       string  `json:"scope"`
 }
 
+type configClient struct {
+	Username  string `xml:"username"`
+	Password  string `xml:"password"`
+	ClientID  string `xml:"clientID"`
+	Secret    string `xml:"secret"`
+	UserAgent string `xml:"userAgent"`
+	AuthURL   string `xml:"authURL"`
+}
+
 //NewRedditClient - Creates a new reddit client instance with a valid token
 func NewRedditClient() *RedditClient {
 	client := &RedditClient{}
@@ -37,12 +47,20 @@ func (r RedditClient) getClientToken() *tokenResponse {
 		return r.token
 	}
 
-	user := "totallynotabot17"
-	password := "something"
-	secret := "jZldv1nnORs6LlWgL151QELumCc"
-	clientID := "EFoEerQjNulP9g"
-	userAgent := "windows:golang.reddit.bot.TestBot:.1 (by /u/realityman_)"
-	authURL := "https://www.reddit.com/api/v1/access_token"
+	configFile, err := ioutil.ReadFile("redditclient.xml")
+	if err != nil {
+		log.Fatal("Couldn't read client configuration file.")
+	}
+
+	config := &configClient{}
+	xml.Unmarshal(configFile, config)
+
+	user := config.Username
+	password := config.Password
+	secret := config.Secret
+	clientID := config.ClientID
+	userAgent := config.UserAgent
+	authURL := config.AuthURL
 
 	//Build call to get token
 	client := &http.Client{}

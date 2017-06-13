@@ -1,0 +1,9 @@
+<redditclient>
+  <username></username>
+  <password></password>
+  <secret></secret>
+  <clientID></clientID>
+  <userAgent></userAgent>
+  <authURL></authURL>
+  <callbackURL></callbackURL>
+</redditclient>
