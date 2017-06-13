@@ -14,7 +14,8 @@ import (
 
 //RedditClient - Handles authorization and requests to reddit API
 type RedditClient struct {
-	token *tokenResponse
+	token  *tokenResponse
+	config *configClient
 }
 
 type tokenResponse struct {
@@ -34,11 +35,22 @@ type configClient struct {
 }
 
 //NewRedditClient - Creates a new reddit client instance with a valid token
-func NewRedditClient() *RedditClient {
+func NewRedditClient(filePath string) (*RedditClient, error) {
 	client := &RedditClient{}
+
+	configFile, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		log.Println("There was a problem loading the configuration file.")
+		return nil, errors.New("Couldn't load reddit client configuration file.")
+	}
+
+	client.config = &configClient{}
+	xml.Unmarshal(configFile, client.config)
+
 	client.token = client.getClientToken()
 	fmt.Println(client.token.AccessToken)
-	return client
+
+	return client, nil
 }
 
 func (r RedditClient) getClientToken() *tokenResponse {
@@ -46,29 +58,13 @@ func (r RedditClient) getClientToken() *tokenResponse {
 	if r.token != nil {
 		return r.token
 	}
-
-	configFile, err := ioutil.ReadFile("redditclient.xml")
-	if err != nil {
-		log.Fatal("Couldn't read client configuration file.")
-	}
-
-	config := &configClient{}
-	xml.Unmarshal(configFile, config)
-
-	user := config.Username
-	password := config.Password
-	secret := config.Secret
-	clientID := config.ClientID
-	userAgent := config.UserAgent
-	authURL := config.AuthURL
-
 	//Build call to get token
 	client := &http.Client{}
-	body := strings.NewReader("grant_type=password&username=" + user + "&password=" + password)
-	req, _ := http.NewRequest("POST", authURL, body)
-	req.Header.Set("User-Agent", userAgent)
+	body := strings.NewReader("grant_type=password&username=" + r.config.Username + "&password=" + r.config.Password)
+	req, _ := http.NewRequest("POST", r.config.AuthURL, body)
+	req.Header.Set("User-Agent", r.config.UserAgent)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.SetBasicAuth(clientID, secret)
+	req.SetBasicAuth(r.config.ClientID, r.config.Secret)
 
 	//Call authorization
 	resp, _ := client.Do(req)
@@ -108,7 +104,7 @@ func (r RedditClient) MakeAPICall(api, method string, request io.Reader) ([]byte
 }
 
 func (r RedditClient) buildRequest(apiURL, method string, payload io.Reader) (*http.Request, error) {
-	userAgent := "windows:golang.reddit.bot.TestBot:.1 (by /u/realityman_"
+	userAgent := r.config.UserAgent
 	req, err := http.NewRequest(method, apiURL, payload)
 	if err != nil {
 		log.Fatal("There was a problem building the request")
