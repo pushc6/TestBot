@@ -111,6 +111,7 @@ func (r RedditClient) buildRequest(apiURL, method string, payload io.Reader) (*h
 		return nil, errors.New("There was a problem building the request")
 	}
 	req.Header.Set("User-Agent", userAgent)
+	fmt.Println("setting user agent to: ", userAgent)
 	req.Header.Set("Authorization", "bearer "+r.getClientToken().AccessToken)
 	return req, nil
 }
