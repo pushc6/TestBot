@@ -79,9 +79,17 @@ func (r RedditClient) getClientToken() *tokenResponse {
 
 }
 
+func (r RedditClient) MakeParsedAPICall(api, method string, params map[string]string, request io.Reader) (*response, error) {
+	resp, _ := r.MakeAPICall(api, method, params, request)
+	jsonResp := &response{}
+	fmt.Println("the response was: ", string(resp))
+	json.Unmarshal(resp, &jsonResp)
+	return jsonResp, nil
+}
+
 //MakeAPICall - Calls a Reddit API with the given method POST\GET and returns a response
-func (r RedditClient) MakeAPICall(api, method string, request io.Reader) ([]byte, error) {
-	req, err2 := r.buildRequest(api, method, request)
+func (r RedditClient) MakeAPICall(api, method string, params map[string]string, request io.Reader) ([]byte, error) {
+	req, err2 := r.buildRequest(api, method, request, params)
 	if err2 != nil {
 		log.Print("Failed building request for API call")
 		return nil, errors.New("Failed building request for API call")
@@ -103,15 +111,26 @@ func (r RedditClient) MakeAPICall(api, method string, request io.Reader) ([]byte
 	return bodyVal, nil
 }
 
-func (r RedditClient) buildRequest(apiURL, method string, payload io.Reader) (*http.Request, error) {
+func (r RedditClient) buildRequest(apiURL, method string, payload io.Reader, params map[string]string) (*http.Request, error) {
 	userAgent := r.config.UserAgent
-	req, err := http.NewRequest(method, apiURL, payload)
+	paramString := ""
+	if params != nil {
+		paramString = "?"
+		for key, val := range params {
+			paramString += key + "=" + val + "&"
+		}
+		paramString = paramString[:len(paramString)-1]
+		fmt.Println("the param string is: ", paramString)
+	}
+	req, err := http.NewRequest(method, apiURL+paramString, payload)
 	if err != nil {
 		log.Fatal("There was a problem building the request")
 		return nil, errors.New("There was a problem building the request")
 	}
+
 	req.Header.Set("User-Agent", userAgent)
-	fmt.Println("setting user agent to: ", userAgent)
 	req.Header.Set("Authorization", "bearer "+r.getClientToken().AccessToken)
+	//req.Header.Set("raw_json", "1")
+	//req.Header.Set("limit", "1")
 	return req, nil
 }
