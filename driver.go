@@ -20,7 +20,7 @@ func main() {
 	params := make(map[string]string)
 	params["limit"] = "1"
 	params["raw_json"] = "1"
-	res2, _ := r.MakeParsedAPICall("https://oauth.reddit.com/r/test/new?limit=1&raw_json=1", "GET", params, nil)
+	res2, _ := r.MakeParsedAPICall("https://oauth.reddit.com/r/test/new", "GET", params, nil)
 
 	//Still needs work parsing response
 	fmt.Println(res2)
