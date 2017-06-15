@@ -48,7 +48,7 @@ func NewRedditClient(filePath string) (*RedditClient, error) {
 	xml.Unmarshal(configFile, client.config)
 
 	client.token = client.getClientToken()
-	fmt.Println(client.token.AccessToken)
+	//fmt.Println(client.token.AccessToken)
 
 	return client, nil
 }
@@ -79,12 +79,39 @@ func (r RedditClient) getClientToken() *tokenResponse {
 
 }
 
-func (r RedditClient) MakeParsedAPICall(api, method string, params map[string]string, request io.Reader) (*response, error) {
+//MakeParsedAPICall - Goes out and makes an API call and returns a reddit "Thing"
+func (r RedditClient) MakeParsedAPICall(api, method string, params map[string]string, request io.Reader) (*Thing, error) {
 	resp, _ := r.MakeAPICall(api, method, params, request)
-	jsonResp := &response{}
+	jsonResp := &Thing{}
 	fmt.Println("the response was: ", string(resp))
 	json.Unmarshal(resp, &jsonResp)
 	return jsonResp, nil
+}
+
+func parseListing(j json.RawMessage) (*Listing, error) {
+	lstng := &Listing{}
+	err := json.Unmarshal(j, &lstng)
+	if err == nil {
+		return lstng, nil
+	}
+	return nil, errors.New("Unable to parse Listing from given interface")
+}
+
+//GetListing - Get's listing from a given subreddit
+func (r RedditClient) GetListing(api string, params map[string]string, request io.Reader) ([]*Link, error) {
+
+	lnk := &Link{}
+	resp, _ := r.MakeParsedAPICall(api, "GET", params, request)
+	lstng, _ := parseListing(resp.Data)
+	links := make([]*Link, 0)
+	for _, child := range lstng.Things {
+		if child.Kind == "t3" {
+			json.Unmarshal(child.Data, lnk)
+			links = append(links, lnk)
+		}
+	}
+
+	return links, nil
 }
 
 //MakeAPICall - Calls a Reddit API with the given method POST\GET and returns a response
@@ -120,7 +147,7 @@ func (r RedditClient) buildRequest(apiURL, method string, payload io.Reader, par
 			paramString += key + "=" + val + "&"
 		}
 		paramString = paramString[:len(paramString)-1]
-		fmt.Println("the param string is: ", paramString)
+		//fmt.Println("the param string is: ", paramString)
 	}
 	req, err := http.NewRequest(method, apiURL+paramString, payload)
 	if err != nil {

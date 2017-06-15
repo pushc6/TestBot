@@ -16,12 +16,14 @@ func main() {
 
 	fmt.Println(body)
 	*/
-	fmt.Println("*************")
+	//fmt.Println("*************")
 	params := make(map[string]string)
-	params["limit"] = "1"
+	params["limit"] = "2"
 	params["raw_json"] = "1"
-	res2, _ := r.MakeParsedAPICall("https://oauth.reddit.com/r/test/new", "GET", params, nil)
+	//res2, _ := r.MakeParsedAPICall("https://oauth.reddit.com/r/test/new", "GET", params, nil)
+	res3, _ := r.GetListing("https://oauth.reddit.com/r/test/new", params, nil)
 
 	//Still needs work parsing response
-	fmt.Println(res2)
+	//fmt.Println(res2)
+	fmt.Println("The title is: ", res3[0].Title)
 }
