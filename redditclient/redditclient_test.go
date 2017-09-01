@@ -37,7 +37,8 @@ func TestMakeAPICall(t *testing.T) {
 		t.Error("Should have been able to load reddit client, but couldn't.")
 	}
 	//Test Call With Wrong API
-	_, err2 := r.MakeAPICall("sdfsfsdfsfsd", "test", nil)
+	params := make(map[string]string)
+	_, err2 := r.MakeAPICall("https://oauth.reddit.com/r/test/new", "nothinghere", params, nil)
 
 	if err2 == nil {
 		t.Error("Expected an error response for bad API call")
